@@ -6,14 +6,13 @@ import toast from "react-hot-toast";
 import { Users } from "lucide-react";
 
 const AgregarEquipo = () => {
-  const { campeonatoId } = useParams(); // ✅ ID correcto del campeonato
+  const { campeonatoId } = useParams();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     nombre: "",
-    entrenador: "",
-    jugadores: "",
-    categoria: "",
+    siglas: "",
+    directorTecnico: "",
   });
 
   const handleChange = (e) => {
@@ -24,13 +23,12 @@ const AgregarEquipo = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.nombre.trim()) {
-      toast.error("El nombre del equipo es obligatorio");
+    if (!formData.nombre.trim() || !formData.siglas.trim()) {
+      toast.error("El nombre y las siglas son obligatorios");
       return;
     }
 
     try {
-      // ✅ Se usa campeonatoId, no id
       await addDoc(collection(db, "equipos"), {
         ...formData,
         campeonatoId,
@@ -56,6 +54,7 @@ const AgregarEquipo = () => {
         onSubmit={handleSubmit}
         className="bg-white dark:bg-gray-800 shadow-md rounded-xl p-6 border border-gray-100 dark:border-gray-700 space-y-5"
       >
+        {/* Nombre del equipo */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Nombre del Equipo
@@ -71,48 +70,39 @@ const AgregarEquipo = () => {
           />
         </div>
 
+        {/* Siglas o abreviatura */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Categoría
+            Siglas o Abreviatura
           </label>
           <input
             type="text"
-            name="categoria"
-            value={formData.categoria}
+            name="siglas"
+            value={formData.siglas}
             onChange={handleChange}
-            className="w-full mt-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-900 dark:text-white"
-            placeholder="Ej. Sub-17, Libre, etc."
+            className="w-full mt-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-900 dark:text-white uppercase tracking-wide"
+            placeholder="Ej. CLA"
+            maxLength={5}
+            required
           />
         </div>
 
+        {/* Director técnico (opcional) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Entrenador
+            Director Técnico (opcional)
           </label>
           <input
             type="text"
-            name="entrenador"
-            value={formData.entrenador}
+            name="directorTecnico"
+            value={formData.directorTecnico}
             onChange={handleChange}
             className="w-full mt-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-900 dark:text-white"
-            placeholder="Nombre del entrenador"
+            placeholder="Nombre del entrenador o DT"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Jugadores (opcional)
-          </label>
-          <textarea
-            name="jugadores"
-            value={formData.jugadores}
-            onChange={handleChange}
-            className="w-full mt-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-900 dark:text-white"
-            rows="4"
-            placeholder="Lista de jugadores, separados por coma"
-          />
-        </div>
-
+        {/* Botones */}
         <div className="flex justify-end gap-3 pt-4">
           <button
             type="button"

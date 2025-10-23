@@ -1,29 +1,18 @@
 import React from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const ChartDonut = ({ data = [] }) => {
-  // 🔹 Datos por defecto si no se pasa ningún prop
-  const defaultData = [
-    { name: "Regional Norte", value: 12 },
-    { name: "Regional Centro", value: 8 },
-    { name: "Regional Sur", value: 15 },
-    { name: "Lima Metropolitana", value: 10 },
+  const COLORS = ["#00E0A1", "#3B82F6", "#FACC15"];
+  const chartData = data.length ? data : [
+    { name: "1er Árbitro", value: 0 },
+    { name: "2do Árbitro", value: 0 },
+    { name: "Planilla", value: 0 },
   ];
-
-  const chartData = data.length ? data : defaultData;
-  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-xl p-4">
       <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-        Distribución por regiones
+        Distribución por rol
       </h3>
 
       <ResponsiveContainer width="100%" height={300}>
@@ -33,15 +22,13 @@ const ChartDonut = ({ data = [] }) => {
             cx="50%"
             cy="50%"
             innerRadius={60}
-            outerRadius={100}
-            paddingAngle={5}
+            outerRadius={90}
+            paddingAngle={4}
             dataKey="value"
+            label
           >
-            {chartData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={COLORS[index % COLORS.length]}
-              />
+            {chartData.map((entry, idx) => (
+              <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip />

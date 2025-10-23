@@ -14,6 +14,8 @@ import PerfilArbitro from "../pages/admin/PerfilArbitro";
 
 import Partidos from "../pages/admin/Partidos";
 import AgregarPartido from "../pages/admin/AgregarPartido";
+import EditarPartido from "../pages/admin/EditarPartido";
+
 
 import Campeonatos from "../pages/admin/Campeonatos";
 import AgregarCampeonato from "../pages/admin/AgregarCampeonato";
@@ -56,6 +58,7 @@ const AppRouter = () => {
           {/* Partidos */}
           <Route path="partidos" element={<Partidos />} />
           <Route path="partidos/agregar" element={<AgregarPartido />} />
+          <Route path="partidos/editar/:id" element={<EditarPartido />} />
 
           {/* Campeonatos */}
           <Route path="campeonatos" element={<Campeonatos />} />

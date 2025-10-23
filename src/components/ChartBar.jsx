@@ -10,16 +10,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const ChartBar = () => {
-  // 🔹 Datos de ejemplo (luego se reemplazarán por datos reales desde Firebase)
-  const data = [
-    { name: "Ene", partidos: 14 },
-    { name: "Feb", partidos: 10 },
-    { name: "Mar", partidos: 18 },
-    { name: "Abr", partidos: 9 },
-    { name: "May", partidos: 22 },
-    { name: "Jun", partidos: 17 },
-  ];
+const ChartBar = ({ data = [] }) => {
+  // Si no hay datos se muestra un placeholder vacío para mantener diseño
+  const chartData = data.length ? data : [];
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-xl p-4">
@@ -28,13 +21,13 @@ const ChartBar = () => {
       </h3>
 
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
+        <BarChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="name" stroke="#94a3b8" />
+          <XAxis dataKey="mes" stroke="#94a3b8" />
           <YAxis stroke="#94a3b8" />
           <Tooltip />
           <Legend />
-          <Bar dataKey="partidos" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+          <Bar dataKey="cantidad" fill="#3b82f6" radius={[6, 6, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

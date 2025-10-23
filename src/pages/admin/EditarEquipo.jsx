@@ -5,14 +5,13 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 
 export default function EditarEquipo() {
-  const { campeonatoId, equipoId } = useParams(); // ✅ ambos parámetros
+  const { campeonatoId, equipoId } = useParams();
   const navigate = useNavigate();
 
   const [equipo, setEquipo] = useState({
     nombre: "",
-    categoria: "",
-    entrenador: "",
-    jugadores: "",
+    siglas: "",
+    directorTecnico: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -20,13 +19,7 @@ export default function EditarEquipo() {
   useEffect(() => {
     const obtenerEquipo = async () => {
       try {
-        if (!equipoId) {
-          toast.error("ID del equipo no válido");
-          navigate(-1);
-          return;
-        }
-
-        const docRef = doc(db, "equipos", equipoId); // ✅ usar equipoId
+        const docRef = doc(db, "equipos", equipoId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -37,7 +30,7 @@ export default function EditarEquipo() {
         }
       } catch (error) {
         console.error("Error al obtener el equipo:", error);
-        toast.error("No se pudo cargar la información del equipo");
+        toast.error("Error al cargar el equipo");
       } finally {
         setLoading(false);
       }
@@ -52,19 +45,23 @@ export default function EditarEquipo() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const docRef = doc(db, "equipos", equipoId); // ✅ usar equipoId
-      await updateDoc(docRef, equipo);
+      await updateDoc(doc(db, "equipos", equipoId), equipo);
       toast.success("Equipo actualizado correctamente");
       navigate(`/admin/campeonatos/${campeonatoId}/equipos`);
     } catch (error) {
       console.error("Error al actualizar:", error);
-      toast.error("No se pudo actualizar el equipo");
+      toast.error("Error al actualizar el equipo");
     }
   };
 
-  if (loading) return <p className="text-center mt-6">Cargando equipo...</p>;
+  if (loading)
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-gray-600">
+        <div className="animate-spin h-10 w-10 border-b-2 border-blue-600 rounded-full mb-3"></div>
+        Cargando equipo...
+      </div>
+    );
 
   return (
     <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md">
@@ -72,7 +69,7 @@ export default function EditarEquipo() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block font-medium mb-1">Nombre del equipo</label>
+          <label className="block font-medium mb-1">Nombre del Equipo</label>
           <input
             type="text"
             name="nombre"
@@ -84,34 +81,24 @@ export default function EditarEquipo() {
         </div>
 
         <div>
-          <label className="block font-medium mb-1">Categoría</label>
+          <label className="block font-medium mb-1">Siglas o Abreviatura</label>
           <input
             type="text"
-            name="categoria"
-            value={equipo.categoria}
+            name="siglas"
+            value={equipo.siglas}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg p-2"
+            className="w-full border border-gray-300 rounded-lg p-2 uppercase tracking-wide"
+            maxLength={5}
             required
           />
         </div>
 
         <div>
-          <label className="block font-medium mb-1">Entrenador</label>
+          <label className="block font-medium mb-1">Director Técnico (opcional)</label>
           <input
             type="text"
-            name="entrenador"
-            value={equipo.entrenador}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg p-2"
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">N° Jugadores</label>
-          <input
-            type="number"
-            name="jugadores"
-            value={equipo.jugadores}
+            name="directorTecnico"
+            value={equipo.directorTecnico}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-lg p-2"
           />

@@ -1,8 +1,9 @@
+// src/pages/admin/Partidos.jsx
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { FaPlus, FaSearch, FaFileExcel, FaFilePdf, FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { FaPlus, FaSearch, FaFileExcel, FaFilePdf, FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/firebase/firebaseConfig";
 
 const Partidos = () => {
@@ -11,6 +12,9 @@ const Partidos = () => {
   const [mes, setMes] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedPartido, setSelectedPartido] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
   // 🔹 Cargar partidos desde Firebase
   useEffect(() => {
@@ -29,13 +33,13 @@ const Partidos = () => {
     fetchPartidos();
   }, []);
 
-  // 🔹 Filtros y búsqueda
+  // 🔹 Filtrar partidos
   const filteredPartidos = partidos.filter((p) => {
     const searchText = search.toLowerCase();
     const monthMatch = mes ? p.fecha?.slice(5, 7) === mes : true;
     return (
       monthMatch &&
-      (p.campeonato?.toLowerCase().includes(searchText) ||
+      (p.campeonatoNombre?.toLowerCase().includes(searchText) ||
         `${p.equipoA} vs ${p.equipoB}`.toLowerCase().includes(searchText))
     );
   });
@@ -47,12 +51,22 @@ const Partidos = () => {
     currentPage * rowsPerPage
   );
 
-  const handleExportExcel = () => {
-    alert("Funcionalidad de exportar a Excel próximamente.");
+  // 🔹 Acciones
+  const handleVer = (partido) => {
+    setSelectedPartido(partido);
+    setShowModal(true);
   };
 
-  const handleExportPDF = () => {
-    alert("Funcionalidad de exportar a PDF próximamente.");
+  const handleEditar = (id) => {
+    navigate(`/admin/partidos/editar/${id}`);
+  };
+
+  const handleEliminar = async (id) => {
+    const confirm = window.confirm("¿Seguro que deseas eliminar este partido?");
+    if (!confirm) return;
+
+    await deleteDoc(doc(db, "partidos", id));
+    setPartidos(partidos.filter((p) => p.id !== id));
   };
 
   return (
@@ -106,7 +120,7 @@ const Partidos = () => {
 
       {/* 📋 Tabla */}
       <div className="overflow-x-auto bg-white rounded-xl shadow">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100 text-gray-700">
             <tr>
               <th className="p-3 text-left">Fecha</th>
@@ -122,22 +136,36 @@ const Partidos = () => {
               paginatedPartidos.map((p) => (
                 <tr key={p.id} className="border-t hover:bg-gray-50">
                   <td className="p-3">{p.fecha}</td>
-                  <td className="p-3">{p.campeonato}</td>
+                  <td className="p-3">{p.campeonatoNombre}</td>
                   <td className="p-3 font-semibold">{`${p.equipoA} vs ${p.equipoB}`}</td>
                   <td className="p-3">{`${p.scoreA ?? 0} - ${p.scoreB ?? 0}`}</td>
                   <td className="p-3 text-sm">
-                    {p.terna?.primerArbitro || "-"} / {p.terna?.segundoArbitro || "-"} / {p.terna?.planilla || "-"}
+                    {p.arbitro1Nombre || "-"} / {p.arbitro2Nombre || "-"} / {p.planillaNombre || "-"}
                   </td>
-                  <td className="p-3 text-center flex justify-center gap-3">
-                    <button data-tooltip-id={`view-${p.id}`} className="text-blue-600 hover:text-blue-800">
+                  <td className="p-3 flex justify-center gap-3">
+                    <button
+                      onClick={() => handleVer(p)}
+                      data-tooltip-id={`view-${p.id}`}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
                       <FaEye />
                     </button>
                     <Tooltip id={`view-${p.id}`} content="Ver detalles" />
-                    <button data-tooltip-id={`edit-${p.id}`} className="text-yellow-600 hover:text-yellow-800">
+
+                    <button
+                      onClick={() => handleEditar(p.id)}
+                      data-tooltip-id={`edit-${p.id}`}
+                      className="text-yellow-600 hover:text-yellow-800"
+                    >
                       <FaEdit />
                     </button>
                     <Tooltip id={`edit-${p.id}`} content="Editar partido" />
-                    <button data-tooltip-id={`delete-${p.id}`} className="text-red-600 hover:text-red-800">
+
+                    <button
+                      onClick={() => handleEliminar(p.id)}
+                      data-tooltip-id={`delete-${p.id}`}
+                      className="text-red-600 hover:text-red-800"
+                    >
                       <FaTrash />
                     </button>
                     <Tooltip id={`delete-${p.id}`} content="Eliminar partido" />
@@ -178,18 +206,69 @@ const Partidos = () => {
       {/* 📤 Exportaciones */}
       <div className="flex justify-end gap-3 mt-6">
         <button
-          onClick={handleExportExcel}
+          onClick={() => alert("Funcionalidad de exportar a Excel próximamente.")}
           className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow"
         >
           <FaFileExcel /> Exportar Excel
         </button>
         <button
-          onClick={handleExportPDF}
+          onClick={() => alert("Funcionalidad de exportar a PDF próximamente.")}
           className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow"
         >
           <FaFilePdf /> Exportar PDF
         </button>
       </div>
+
+      {/* 🪟 Modal Detalle */}
+      {showModal && selectedPartido && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white w-[500px] rounded-xl shadow-xl p-6 relative">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              <FaTimes />
+            </button>
+
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              Detalle del Partido
+            </h2>
+
+            <h3 className="text-gray-700 font-semibold mb-3">
+              {selectedPartido.campeonatoNombre}
+            </h3>
+
+            <div className="text-center text-lg font-semibold text-gray-800 mb-4">
+              {selectedPartido.equipoA} ({selectedPartido.scoreA}) - ({selectedPartido.scoreB}){" "}
+              {selectedPartido.equipoB}
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-sm text-gray-700 mb-4">
+              <div>
+                <p className="font-semibold">Categoría</p>
+                <p>{selectedPartido.categoria}</p>
+              </div>
+              <div>
+                <p className="font-semibold">Fase</p>
+                <p>{selectedPartido.fase}</p>
+              </div>
+              <div>
+                <p className="font-semibold">Género</p>
+                <p>{selectedPartido.genero}</p>
+              </div>
+            </div>
+
+            <div className="border-t pt-3 text-sm text-gray-700">
+              <p className="font-semibold mb-2">Terna Arbitral:</p>
+              <ul className="space-y-1">
+                <li>1er Árbitro: {selectedPartido.arbitro1Nombre}</li>
+                <li>2do Árbitro: {selectedPartido.arbitro2Nombre}</li>
+                <li>Planilla: {selectedPartido.planillaNombre}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
